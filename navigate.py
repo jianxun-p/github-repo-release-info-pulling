@@ -10,45 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-move_box_tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "translate_box_down",
-            "description": "Move red shaded rectangle to the down",
-            "parameters": {},
-            "additionalProperties": False
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "translate_box_up",
-            "description": "Move red shaded rectangle to the up",
-            "parameters": {},
-            "additionalProperties": False
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "translate_box_left",
-            "description": "Move red shaded rectangle to the left",
-            "parameters": {},
-            "additionalProperties": False
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "translate_box_right",
-            "description": "Move red shaded rectangle to the right",
-            "parameters": {},
-            "additionalProperties": False
-        }
-    }
-]
-
 save_output_tools = [
     {
         "type": "function",
@@ -102,6 +63,9 @@ def reason_contained(prompt, img="boxed_screenshot.png"):
 
 
 def save_output(repo: str, version: str, tag: str, author: str):
+    """
+    save release info to json file
+    """
     global task_complete
     with open("output.json", 'wt') as f:
         json.dump(
@@ -152,16 +116,22 @@ def translate_box_up():
 
 
 def zoom_box():
+    """
+    shrink the box
+    """
     box_pos[2] = ceil(box_pos[2] / 2)
     box_pos[3] = ceil(box_pos[3] / 2)
-    # box_pos[2] *= 2
-    # box_pos[3] *= 2
     draw_box("boxed_screenshot.png", screenshot_path, box_pos)
 
 def zoom_out():
+    """
+    make the box bigger
+    """
     box_pos[2] = min(box_pos[2] * 2, width)
     box_pos[3] = min(box_pos[3] * 2, height)
     draw_box("boxed_screenshot.png", screenshot_path, box_pos)
+
+
 
 tools_map = {
     "translate_box_right": translate_box_right,
@@ -172,6 +142,9 @@ tools_map = {
 }
 
 def call_tool(res_msg):
+    """
+    dispatches the function calling
+    """
     global input_messages
     if not res_msg.tool_calls:
         return
@@ -188,28 +161,11 @@ def call_tool(res_msg):
             "content": "Ok"
         })
 
-def reason_dir(prompt, img="boxed_screenshot.png"):
-    global msgs
-    msgs.append({
-            "role": "user",
-            "content": [
-                { "type": "text", "text": prompt },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{encode_image(img)}"
-                    },
-                },
-            ],
-        })
-    response = client.chat.completions.create(model=model, messages=msgs, tools=move_box_tools, tool_choice="required")
-    print(prompt)
-    print(response.choices[0].message)
-    res_msg = response.choices[0].message
-    msgs.append(res_msg)
-    return call_tool(res_msg)
 
 def save_info(prompt, img="screenshot.png"):
+    """
+    prompt the model to extract release info from the input image
+    """
     global msgs
     msgs.append({
             "role": "user",
@@ -231,6 +187,9 @@ def save_info(prompt, img="screenshot.png"):
     return call_tool(res_msg)
 
 def locate_x(goal, target, accuracy=120):
+    """
+    locate the target on screen (horizontally)
+    """
     global box_pos, width, height
     draw_box("boxed_screenshot.png", screenshot_path, box_pos)
 
@@ -242,7 +201,7 @@ def locate_x(goal, target, accuracy=120):
     if found:
         box_pos[2] = ceil(box_pos[2] / 2)
         draw_box("boxed_screenshot.png", screenshot_path, box_pos)
-    else:
+    else:   # not found (false positive from the model)
         box_pos[0] = max(0, box_pos[0] - box_pos[2])
         box_pos[2] = min(box_pos[2] * 4, width)
         draw_box("boxed_screenshot.png", screenshot_path, box_pos)
@@ -256,6 +215,9 @@ def locate_x(goal, target, accuracy=120):
     translate_box_left()
 
 def locate_y(goal, target, accuracy=50):
+    """
+    locate the target on screen (vertically)
+    """
     global box_pos, width, height
     draw_box("boxed_screenshot.png", screenshot_path, box_pos)
 
@@ -267,7 +229,7 @@ def locate_y(goal, target, accuracy=50):
     if found:
         box_pos[3] = ceil(box_pos[3] / 2)
         draw_box("boxed_screenshot.png", screenshot_path, box_pos)
-    else:
+    else:   # target not in screenshot (false positive from the model)
         box_pos[1] = max(0, box_pos[1] - box_pos[3])
         box_pos[3] = min(box_pos[3] * 4, height)
         draw_box("boxed_screenshot.png", screenshot_path, box_pos)
@@ -282,8 +244,10 @@ def locate_y(goal, target, accuracy=50):
     translate_box_up()
 
 
-
 def locate(goal, target, accuracy=(120, 40)):
+    """
+    locate the target on screen (divide and conquer)
+    """
     global box_pos, width, height
     box_pos = [0, 0, width, height]
     page.screenshot(path=screenshot_path, full_page=False)
@@ -297,6 +261,9 @@ def locate(goal, target, accuracy=(120, 40)):
 
 
 def click():
+    """
+    Clicks at the center of the box
+    """
     page.mouse.click(box_pos[0] + box_pos[2] // 2, box_pos[1] + box_pos[3] // 2)
 
 
