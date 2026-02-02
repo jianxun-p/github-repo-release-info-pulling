@@ -10,6 +10,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+model = "gpt-4.1-mini"
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+msgs = []
+
 save_output_tools = [
     {
         "type": "function",
@@ -31,12 +36,6 @@ save_output_tools = [
     }
 ]
 
-api_key="hi"
-
-model = "gpt-4.1-mini"
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-msgs = []
 
 def reason_contained(prompt, img="boxed_screenshot.png"):
     global msgs
@@ -276,7 +275,7 @@ if __name__ == '__main__':
         page = browser.new_page()
         page.goto(url)
 
-        locate("I want to search up repo {repo}", "search button", (50, 50))
+        locate(f"I want to search up repo {repo}", "search button", (50, 50))
         click()
         sleep(1)
 
@@ -284,7 +283,7 @@ if __name__ == '__main__':
         page.keyboard.press("Enter")
         sleep(1)
 
-        locate(f"Search repo '{repo}'", "{repo} repo")
+        locate(f"Search repo '{repo}'", f"{repo} repo")
         click()
         sleep(1)
 
