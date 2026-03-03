@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 
 from tool import class_tool, function_calling_tool
 
-scroll_amount = 300
+scroll_amount = 500
 
 @class_tool
 class Browser:
@@ -30,15 +30,6 @@ class Browser:
         """
         self.page.screenshot(path=path, full_page=False)
         return path
-
-    # @function_calling_tool
-    # def click(self, x: int, y: int):
-    #     """
-    #     Click at the specified (x, y) coordinates.
-    #     @param x: The x-coordinate for the click action.
-    #     @param y: The y-coordinate for the click action. 
-    #     """
-    #     self.page.mouse.click(x, y)
 
     @function_calling_tool
     def click(self):
