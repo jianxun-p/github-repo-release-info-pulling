@@ -51,7 +51,7 @@ class Browser:
         else:
             return "No locator set for clicking."
 
-
+    @function_calling_tool
     def select_locator(self, index: int):
         """
         Select a locator for subsequent actions.
@@ -72,7 +72,9 @@ class Browser:
         @param name: The name content of the element.
         """
         self.locators = self.page.get_by_role(role, name=name).all()
-        return str([i.evaluate('el => el.outerHTML') for i in self.locators])
+        return "No locators available" \
+            if len(self.locators) == 0 \
+            else str([i.evaluate('el => el.outerHTML') for i in self.locators])
     
     @function_calling_tool
     def get_by_text(self, text: str):
@@ -80,8 +82,10 @@ class Browser:
         Get a list of elements by the text content.
         @param text: The text content of the element.
         """
-        self.locators = self.page.get_by_text(text)
-        return str([i.evaluate('el => el.outerHTML') for i in self.locators])
+        self.locators = self.page.get_by_text(text).all()
+        return "No locators available" \
+            if len(self.locators) == 0 \
+            else str([i.evaluate('el => el.outerHTML') for i in self.locators])
 
     @function_calling_tool
     def get_by_placeholder(self, text: str):
@@ -89,8 +93,10 @@ class Browser:
         Get a list of elements by the placeholder text.
         @param text: The placeholder text of the element.
         """
-        self.locators = self.page.get_by_placeholder(text)
-        return str([i.evaluate('el => el.outerHTML') for i in self.locators])
+        self.locators = self.page.get_by_placeholder(text).all()
+        return "No locators available" \
+            if len(self.locators) == 0 \
+            else str([i.evaluate('el => el.outerHTML') for i in self.locators])
     
     @function_calling_tool
     def get_by_title(self, text: str):
@@ -99,7 +105,9 @@ class Browser:
         @param text: The title text of the element.
         """
         self.locators = self.page.get_by_title(text).all()
-        return str([i.evaluate('el => el.outerHTML') for i in self.locators])
+        return "No locators available" \
+            if len(self.locators) == 0 \
+            else str([i.evaluate('el => el.outerHTML') for i in self.locators])
     
     @function_calling_tool
     def get_by_label(self, text: str):
@@ -108,7 +116,9 @@ class Browser:
         @param text: The label text of the element.
         """
         self.locators = self.page.get_by_label(text).all()
-        return str([i.evaluate('el => el.outerHTML') for i in self.locators])
+        return "No locators available" \
+            if len(self.locators) == 0 \
+            else str([i.evaluate('el => el.outerHTML') for i in self.locators])
 
     @function_calling_tool
     def focus(self):
@@ -119,16 +129,16 @@ class Browser:
             self.locator.focus()
             return "Focused successfully."
         else:
-            return "No locator set for focusing."
+            return "No locator set for focusing"
 
     @function_calling_tool
     def type(self, text: str):
         """
-        Type text using the keyboard.
+        Type text using the keyboard. (type "\\n" for enter)
         @param text: The text to type.
         """
         self.page.keyboard.type(text)
-        return f'Typed successfully.'
+        return f'Typed successfully'
 
     @function_calling_tool
     def scroll(self):
@@ -137,7 +147,18 @@ class Browser:
         """
         global scroll_amount
         self.page.mouse.wheel(0, scroll_amount)
-        return f'Scrolled successfully.'
+        return f'Scrolled successfully'
+    
+    @function_calling_tool
+    def save_info(self, latest_release: str):
+        """
+        Save information.
+        @param latest_release: The latest release information (JSON string) to save.
+        """
+        with open("sample_output.json", "w") as f:
+            f.write(latest_release)
+        self.end = True
+        return f'Saved successfully'
 
 
 

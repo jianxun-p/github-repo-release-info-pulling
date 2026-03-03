@@ -1,25 +1,22 @@
 from langgraph.graph import END, StateGraph
 from openai import OpenAI
-from tool import CLASS_TOOL_ATTR, CLASS_TOOL_MAP_ATTR
+from tool import CLASS_TOOL_ATTR
 from utils import *
 import json
 import os
 from browser import Browser
-# from playwright.sync_api import Browser, sync_playwright
 from dotenv import load_dotenv
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List
 
 load_dotenv()
-model = "gpt-4.1"
+model = "gpt-5.1"
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 url = "https://github.com"
 
-system_prompt = """
-You are a web navigation agent. 
+system_prompt = """You are a web navigation agent. 
 Your task is to navigate the web page to achieve the given goal. 
 You can use the provided tools (Playwright) to interact with the web page. 
-Always think step by step and use the tools to observe the web page before taking any action.
-"""
+Always think step by step and use the tools to observe the web page before taking any action."""
 
 browser = Browser()
 
@@ -77,8 +74,8 @@ def call_tools(response_message):
 class AgentState(TypedDict):
     goal: str
     screenshot_count: int
-    messages: dict
-    observation: Optional[str]
+    messages: List[dict]
+    saved: bool
     steps: int
 
 
@@ -88,20 +85,21 @@ def observe(state: AgentState):
     return {**state, "screenshot_count": state["screenshot_count"]}
 
 def think(state: AgentState):
-    messages = llm(state["goal"], screenshot_path=screenshot_path(state["screenshot_count"]))
+    messages = state["messages"]
+    messages += [llm(state["goal"], screenshot_path=screenshot_path(state["screenshot_count"]), messages=messages)]
     return {**state, "messages": messages}
 
 def act(state: AgentState):
     messages = state["messages"]
-    tool_msgs = call_tools(messages)
+    tool_msgs = call_tools(messages[-1])
     messages += tool_msgs
-    return {**state, "messages": llm(state["goal"], screenshot_path=screenshot_path(state["screenshot_count"]), messages=messages)}
+    state["steps"] += 1
+    return {**state, "messages": messages}
 
 def should_continue(state: AgentState):
-    if state["steps"] > 10:
+    if state["steps"] > 30 or browser.end:
         return END
     return "observe"
-
 
 
 graph = StateGraph(AgentState)
@@ -121,20 +119,13 @@ app = graph.compile()
 
 if __name__ == '__main__':
 
-    # repo = sys.argv[1]
-
-    # with sync_playwright() as p:
-    #     browser = p.chromium.launch(headless=False, slow_mo=500)
-    #     page = browser.new_page()
-    #     page.goto(url)
-    #     sleep(1)
     browser.goto(url)
 
     result = app.invoke({
-        "goal": "Click the search button",
+        "goal": "Save the latest release information for the 'openclaw' repository.",
         "screenshot_count": 0,
-        "action": None,
-        "observation": None,
+        "messages": [{"role": "system", "content": system_prompt}],
+        "saved": False,
         "steps": 0
     })
 
