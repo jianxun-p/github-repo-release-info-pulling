@@ -2,14 +2,14 @@
 
 See `demo.mp4` for demonstration.
 
-See `observations.pdf` for observations.
-
-See `screenshot.png` for the final screenshot containing information about the latest release.
-
-See `croped.png` for what the model sees.
-
 See `sample_output.json` for sample outputs.
 
+
+## About
+
+This project uses [LangGraph](https://github.com/langchain-ai/langgraph) along with OpenAI's API ([GPT-5.1 model](https://developers.openai.com/api/docs/models/gpt-5.1)).
+
+It controls the browser to fetch the latest release information of the specified repository (openclaw in the example, see `navigate.py`) from GitHub.
 
 ## Set Up
 
@@ -33,6 +33,6 @@ pip install -r requirements.txt
 Run command:
 
 ```
-python ./navigate.py openclaw
+python ./navigate.py
 ```
 
